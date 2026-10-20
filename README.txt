@@ -1,220 +1,225 @@
-================================================================================
-CERBERUS - A Three-Headed Guard for Your Desktop
-================================================================================
+# CERBERUS — A Three-Headed Guard for Your Desktop
 
-In Greek mythology, Cerberus guards the gates of the Underworld. In this
-project, Cerberus guards your desktop with three layers of authentication:
-your OS password, an authorized USB, and a live folder challenge on your
-Desktop.
+In Greek mythology, Cerberus guards the gates of the Underworld. In this project, Cerberus guards your desktop with three layers of authentication: your OS password, an authorized USB, and a live folder challenge on your Desktop.
 
+## Layers
 
---------------------------------------------------------------------------------
-LAYERS
---------------------------------------------------------------------------------
+### Layer 1 — OS Login
+Handled by the operating system. Cerberus does not participate.
 
-  Layer 1 - OS Login
-      Handled by the operating system. Cerberus does not participate.
+### Layer 2 — USB Head
+An authorized USB (verified by serial number) must be plugged in.
 
-  Layer 2 - USB Head
-      An authorized USB (verified by serial number) must be plugged in.
+### Layer 3 — Folder Head
+You must create a folder named `unlock` on your Desktop within the configured timeout (default: 10 seconds).
 
-  Layer 3 - Folder Head
-      You must create a folder named "unlock" on your Desktop within
-      the configured timeout (default: 10 seconds).
+**Failure at Layer 2 or 3 triggers an immediate shutdown of the machine.**
 
-Failure at layer 2 or 3 triggers an immediate shutdown of the machine.
-In DEV_MODE the shutdown is simulated (logged only), so you can test safely.
+In `DEV_MODE`, the shutdown is simulated (logged only), so you can test safely.
 
+---
 
---------------------------------------------------------------------------------
-PROJECT FILES
---------------------------------------------------------------------------------
+## Project Files
 
-  config.py           - All tunable parameters (timeouts, USB whitelist, etc.)
-  logger_setup.py     - Rotating file logger (writes to cerberus.log)
-  usb_checker.py      - Layer 2: authorized USB detection
-  folder_challenge.py - Layer 3: Desktop folder challenge
-  popup.py            - Live Tkinter status window
-  main.py             - Entry point; runs all layers
+| File | Description |
+|---|---|
+| `config.py` | All tunable parameters (timeouts, USB whitelist, etc.) |
+| `logger_setup.py` | Rotating file logger (writes to `cerberus.log`) |
+| `usb_checker.py` | Layer 2: authorized USB detection |
+| `folder_challenge.py` | Layer 3: Desktop folder challenge |
+| `popup.py` | Live Tkinter status window |
+| `main.py` | Entry point; runs all layers |
 
+---
 
---------------------------------------------------------------------------------
-DEV SETUP
---------------------------------------------------------------------------------
+## Dev Setup
 
-  1. Create and activate a virtual environment:
+### 1. Create and Activate a Virtual Environment
 
-         python -m venv .venv
-         .venv\Scripts\activate
+```bash
+python -m venv .venv
+```
 
-  2. Install dependencies:
+On Windows:
 
-         pip install -r requirements.txt
-         pip install wmi
+```powershell
+.venv\Scripts\activate
+```
 
-     (wmi is required on Windows for serial-number lookup.)
+### 2. Install Dependencies
 
-  3. Run:
+```bash
+pip install -r requirements.txt
+pip install wmi
+```
 
-         python main.py
+> **Note:** `wmi` is required on Windows for serial-number lookup.
 
+### 3. Run Cerberus
 
---------------------------------------------------------------------------------
-FINDING YOUR USB SERIAL NUMBER
---------------------------------------------------------------------------------
+```bash
+python main.py
+```
 
-  Linux:
-      lsblk -o NAME,SERIAL,TRAN
-      (look for a row where TRAN is "usb")
+---
 
-  Windows (PowerShell):
-      Get-WmiObject Win32_DiskDrive |
-        Select-Object Model,SerialNumber,InterfaceType
+## Finding Your USB Serial Number
 
-      Look for the row where InterfaceType is "USB". Copy the SerialNumber.
+### Linux
 
-  macOS:
-      system_profiler SPUSBDataType | grep "Serial Number"
+```bash
+lsblk -o NAME,SERIAL,TRAN
+```
 
-  Paste the serial into config.py under USB_SERIAL_WHITELIST.
+Look for a row where `TRAN` is `usb`.
 
+### Windows (PowerShell)
 
---------------------------------------------------------------------------------
-IMPORTANT TESTING NOTES
---------------------------------------------------------------------------------
+```powershell
+Get-WmiObject Win32_DiskDrive |
+    Select-Object Model,SerialNumber,InterfaceType
+```
 
-  * The DEV_MODE flag in config.py controls whether shutdowns actually
-    happen. ALWAYS test with DEV_MODE = True first, in a virtual machine
-    if possible. Only set DEV_MODE = False when you are ready for the
-    machine to really power off.
+Look for the row where `InterfaceType` is `USB`. Copy the `SerialNumber`.
 
-  * Delete the "unlock" folder from your Desktop before each test run.
-    If the folder is left over from a previous run, Layer 3 will pass
-    instantly and the test will not reflect real behavior.
+### macOS
 
-  * Delete cerberus.log before a demonstration run to keep the log clean
-    and focused on the current session.
+```bash
+system_profiler SPUSBDataType | grep "Serial Number"
+```
 
-  * On Windows, shutdown.exe requires the SeShutdownPrivilege. Run
-    Cerberus from an Administrator account, or the shutdown command
-    will silently fail. You will see "Failed to issue shutdown command"
-    in cerberus.log if this happens.
+Paste the serial into `config.py` under `USB_SERIAL_WHITELIST`.
 
+---
 
---------------------------------------------------------------------------------
-RUNNING AS A LOGIN SERVICE
---------------------------------------------------------------------------------
+## Important Testing Notes
 
-  Windows Task Scheduler (recommended for the demo):
+- The `DEV_MODE` flag in `config.py` controls whether shutdowns actually happen. **Always test with `DEV_MODE = True` first**, in a virtual machine if possible. Only set `DEV_MODE = False` when you are ready for the machine to really power off.
 
-      1. Open Task Scheduler.
-      2. Create Basic Task -> name it "Cerberus".
-      3. Trigger: "When I log on".
-      4. Action: "Start a program".
-         Program:   C:\path\to\cerberus\.venv\Scripts\pythonw.exe
-         Arguments: C:\path\to\cerberus\main.py
-         Start in:  C:\path\to\cerberus
-      5. Finish. Right-click the task and choose "Run" to test.
+- Delete the `unlock` folder from your Desktop before each test run. If the folder is left over from a previous run, Layer 3 will pass instantly, and the test will not reflect real behavior.
 
-  Linux (systemd user unit):
+- Delete `cerberus.log` before a demonstration run to keep the log clean and focused on the current session.
 
-      Create ~/.config/systemd/user/cerberus.service with:
+- On Windows, `shutdown.exe` requires the `SeShutdownPrivilege`. Run Cerberus from an Administrator account, or the shutdown command may fail. You will see `Failed to issue shutdown command` in `cerberus.log` if this happens.
 
-          [Unit]
-          Description=Cerberus USB Guard
-          After=graphical-session.target
+---
 
-          [Service]
-          ExecStart=/path/to/.venv/bin/python /path/to/main.py
-          Restart=always
+## Running as a Login Service
 
-          [Install]
-          WantedBy=default.target
+### Windows Task Scheduler (Recommended for the Demo)
 
-      Then:
+1. Open Task Scheduler.
+2. Select **Create Basic Task** and name it `Cerberus`.
+3. Set the trigger to **When I log on**.
+4. Set the action to **Start a program**.
+   - **Program:**
+     ```text
+     C:\path\to\cerberus\.venv\Scripts\pythonw.exe
+     ```
+   - **Arguments:**
+     ```text
+     C:\path\to\cerberus\main.py
+     ```
+   - **Start in:**
+     ```text
+     C:\path\to\cerberus
+     ```
+5. Finish the wizard. Right-click the task and choose **Run** to test.
 
-          systemctl --user daemon-reload
-          systemctl --user enable --now cerberus
+### Linux (systemd User Unit)
 
-      Restart=always ensures an attacker cannot simply kill the process.
+Create `~/.config/systemd/user/cerberus.service` with the following contents:
 
+```ini
+[Unit]
+Description=Cerberus USB Guard
+After=graphical-session.target
 
---------------------------------------------------------------------------------
-SECURITY NOTES (for the project report)
---------------------------------------------------------------------------------
+[Service]
+ExecStart=/path/to/.venv/bin/python /path/to/main.py
+Restart=always
 
-  1. Why "any USB" is weak:
-     If any USB satisfies Layer 2, an attacker only needs a spare flash
-     drive. Serial verification closes this gap. USB_SERIAL_WHITELIST is
-     the correct configuration.
+[Install]
+WantedBy=default.target
+```
 
-  2. USB serial spoofability:
-     Advanced attackers can clone a USB serial by reflashing the device
-     firmware. Real-world mitigations use hardware tokens (FIDO2,
-     YubiKey) that sign challenges cryptographically. Mention this in
-     your threat model.
+Then run:
 
-  3. Folder challenge limits:
-     The folder challenge is a knowledge/behavior factor, not a
-     cryptographic one. It is best treated as a third factor on top of
-     the OS password and the USB, not as a standalone control.
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now cerberus
+```
 
-  4. Race conditions:
-     A fast attacker could kill main.py before shutdown fires. In
-     production, run Cerberus under a service manager (systemd or Task
-     Scheduler) with Restart=always so killing it triggers an immediate
-     restart. This is not implemented in the current version but is
-     worth noting in the report.
+`Restart=always` ensures that the service manager restarts Cerberus if the process exits. However, this does not prevent every possible way of disabling the protection.
 
-  5. Log integrity:
-     cerberus.log is plaintext and unsigned. Any attacker with file
-     access can modify it. For a real deployment, sign log entries with
-     HMAC under a key derived from the OS password.
+---
 
+## Security Notes (For the Project Report)
 
---------------------------------------------------------------------------------
-EXTENSION IDEAS
---------------------------------------------------------------------------------
+### 1. Why "Any USB" Is Weak
 
-  * Replace the folder challenge with an HMAC of a per-boot nonce.
-  * Encrypt the USB whitelist with a key derived from the OS password.
-  * Use pyudev (Linux) or WMI event subscriptions (Windows) instead of
-    polling for USB presence.
-  * Add a --bypass flag protected by a hashed password for demo safety.
-  * Add a visual countdown bar to the popup during the Layer 3 timer.
+If any USB satisfies Layer 2, an attacker only needs a spare flash drive. Serial verification closes this gap. `USB_SERIAL_WHITELIST` is the correct configuration.
 
+### 2. USB Serial Spoofability
 
---------------------------------------------------------------------------------
-TROUBLESHOOTING
---------------------------------------------------------------------------------
+Advanced attackers can clone a USB serial by reflashing the device firmware. Real-world mitigations use hardware tokens such as FIDO2 devices or YubiKeys that sign challenges cryptographically. Mention this in your threat model.
 
-  "No removable storage devices detected" with USB plugged in
-      psutil did not see the drive. Open a Python shell and print
-      psutil.disk_partitions() to check. If the drive does not appear,
-      verify it is mounted and has a drive letter assigned.
+### 3. Folder Challenge Limits
 
-  Serial shows as None repeatedly
-      Ensure "wmi" is installed in the active virtual environment:
-          pip install wmi
-      If it is installed and serial is still None, the USB controller
-      may not expose a serial. In that case set VERIFY_USB_SERIAL = False
-      to test the rest of the flow, or switch to a different USB stick.
+The folder challenge is a knowledge/behavior factor, not a cryptographic one. It is best treated as a third factor on top of the OS password and the USB, not as a standalone control.
 
-  Folder challenge never succeeds
-      Check the log line "Desktop resolved to: ..." to verify the Desktop
-      path. If it points somewhere unexpected, override get_desktop_path()
-      in config.py or place the unlock folder at the reported path.
+### 4. Race Conditions
 
-  Shutdown does not fire in real mode
-      Ensure DEV_MODE = False in config.py. Run from an Administrator
-      account on Windows. Check cerberus.log for "Failed to issue
-      shutdown command" and adjust accordingly.
+A fast attacker could kill `main.py` before shutdown fires. In production, run Cerberus under a service manager (systemd or Task Scheduler) with `Restart=always` so the service manager attempts to restart it if the process exits.
 
-  Popup window flashes and disappears
-      This should be fixed in the current version via wait_for_close().
-      If it still happens, confirm main.py contains the two
-      wait_for_close() calls near the end of main().
+This is not implemented in the current version but is worth noting in the report.
 
-================================================================================
-End of README
-================================================================================
+### 5. Log Integrity
+
+`cerberus.log` is plaintext and unsigned. Any attacker with file access can modify it. For a real deployment, consider signing log entries with an HMAC under a securely managed key.
+
+---
+
+## Extension Ideas
+
+- Replace the folder challenge with an HMAC of a per-boot nonce.
+- Encrypt the USB whitelist with a key derived from the OS password.
+- Use `pyudev` (Linux) or WMI event subscriptions (Windows) instead of polling for USB presence.
+- Add a `--bypass` flag protected by a hashed password for demo safety.
+- Add a visual countdown bar to the popup during the Layer 3 timer.
+
+---
+
+## Troubleshooting
+
+### "No removable storage devices detected" With USB Plugged In
+
+`psutil` did not see the drive. Open a Python shell and print `psutil.disk_partitions()` to check. If the drive does not appear, verify that it is mounted and has a drive letter assigned.
+
+### Serial Shows as `None` Repeatedly
+
+Ensure `wmi` is installed in the active virtual environment:
+
+```bash
+pip install wmi
+```
+
+If it is installed and the serial is still `None`, the USB controller may not expose a serial. In that case, set `VERIFY_USB_SERIAL = False` to test the rest of the flow, or switch to a different USB stick.
+
+### Folder Challenge Never Succeeds
+
+Check the log line `Desktop resolved to: ...` to verify the Desktop path. If it points somewhere unexpected, override `get_desktop_path()` in `config.py` or place the `unlock` folder at the reported path.
+
+### Shutdown Does Not Fire in Real Mode
+
+Ensure `DEV_MODE = False` in `config.py`. Run from an Administrator account on Windows. Check `cerberus.log` for `Failed to issue shutdown command` and adjust accordingly.
+
+> **Safety warning:** Test real shutdown behavior only on a machine you control, after saving your work. Prefer testing in a virtual machine with `DEV_MODE = True` first.
+
+### Popup Window Flashes and Disappears
+
+This should be fixed in the current version via `wait_for_close()`. If it still happens, confirm that `main.py` contains the two `wait_for_close()` calls near the end of `main()`.
+
+---
+
+**End of README**
