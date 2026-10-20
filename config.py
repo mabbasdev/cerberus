@@ -13,7 +13,7 @@ from pathlib import Path
 
 # --- General ---
 # Set to True while developing: shows warnings instead of shutting down.
-DEV_MODE = True
+DEV_MODE = False
 
 # --- Layer 3: Desktop folder challenge ---
 # Folder name the user must create ON THE DESKTOP to complete auth.
@@ -42,6 +42,12 @@ USB_SERIAL_WHITELIST = [
 # Seconds to wait after service start before the first USB check —
 # gives the desktop time to finish loading after OS login.
 USB_CHECK_DELAY = 2
+
+# How long to retry a serial lookup before declaring it absent (seconds).
+SERIAL_RETRY_SECONDS = 3
+
+# Delay between serial lookup retries (seconds).
+SERIAL_RETRY_INTERVAL = 0.5
 
 
 def get_desktop_path() -> Path:

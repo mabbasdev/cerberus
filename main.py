@@ -13,15 +13,27 @@ Usage:
     python main.py
 """
 
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+import os
 import sys
 import time
 import platform
 import subprocess
 
-from config import DEV_MODE, USB_CHECK_DELAY, get_desktop_path, UNLOCK_FOLDER_NAME
+from config import (
+    DEV_MODE,
+    USB_CHECK_DELAY,
+    get_desktop_path,
+    UNLOCK_FOLDER_NAME,
+    FOLDER_CREATION_TIMEOUT,
+)
 from logger_setup import get_logger
 from usb_checker import is_authorized_usb_connected
 from folder_challenge import wait_for_unlock_folder
+from popup import start_popup, wait_for_close
 
 logger = get_logger("cerberus")
 
@@ -42,7 +54,16 @@ def shutdown_system(reason: str) -> None:
     system = platform.system()
     try:
         if system == "Windows":
-            subprocess.run(["shutdown", "/s", "/t", "0"], check=False)
+            # Use the full path to shutdown.exe because Task Scheduler
+            # may run us with a minimal PATH. The /f flag force-closes
+            # applications so Windows doesn't wait for "save your work?"
+            # prompts — matching the "no warning" requirement.
+            shutdown_exe = os.path.join(
+                os.environ.get("SystemRoot", r"C:\Windows"),
+                "System32",
+                "shutdown.exe",
+            )
+            subprocess.run([shutdown_exe, "/s", "/f", "/t", "0"], check=False)
         elif system == "Linux":
             subprocess.run(["shutdown", "-h", "now"], check=False)
         elif system == "Darwin":
@@ -69,17 +90,19 @@ def run_authentication() -> bool:
     logger.info(
         "Create a folder named '%s' on your Desktop within %.0fs.",
         UNLOCK_FOLDER_NAME,
-        __import__("config").FOLDER_CREATION_TIMEOUT,
+        FOLDER_CREATION_TIMEOUT,
     )
     if not wait_for_unlock_folder():
         logger.warning("Folder challenge FAILED.")
         return False
     logger.info("Folder challenge PASSED.")
-
     return True
 
 
 def main() -> int:
+    # Start the popup first so every log line (including startup) appears.
+    start_popup()
+
     logger.info("Cerberus starting (DEV_MODE=%s).", DEV_MODE)
     logger.info("Desktop path: %s", get_desktop_path())
 
@@ -95,9 +118,17 @@ def main() -> int:
     if ok:
         logger.info("=== All Cerberus heads satisfied. System unlocked. ===")
         print("Cerberus: all three heads are calm. Welcome!")
+        # Keep the popup visible until the user closes it. Without this,
+        # main() would return immediately and the daemon popup thread
+        # would be killed, causing the window to flash and vanish.
+        wait_for_close()
         return 0
 
     shutdown_system("authentication failure")
+    # In DEV_MODE nothing was actually shut down, so give the tester a
+    # few seconds to read the popup before it disappears. In real mode,
+    # the machine will already be powering off before this line runs.
+    wait_for_close(timeout=8)
     return 1
 
 
