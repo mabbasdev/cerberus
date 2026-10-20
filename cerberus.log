@@ -1,0 +1,36 @@
+2026-10-20 12:08:06 | INFO     | cerberus | Cerberus starting (DEV_MODE=True).
+2026-10-20 12:08:06 | INFO     | cerberus | Desktop path: C:\Users\Butt\Desktop
+2026-10-20 12:08:08 | INFO     | cerberus | === Cerberus head 2: USB check ===
+2026-10-20 12:08:08 | INFO     | usb_checker | Removable devices detected: ['D:\\', 'E:\\']
+2026-10-20 12:08:09 | INFO     | usb_checker | Checking device D:\ -> serial=5B850F0005F8
+2026-10-20 12:08:09 | INFO     | usb_checker | Authorized USB serial matched: 5B850F0005F8
+2026-10-20 12:08:09 | INFO     | cerberus | USB authentication PASSED.
+2026-10-20 12:08:09 | INFO     | cerberus | === Cerberus head 3: Desktop folder challenge ===
+2026-10-20 12:08:09 | INFO     | cerberus | Create a folder named 'unlock' on your Desktop within 10s.
+2026-10-20 12:08:09 | INFO     | folder_challenge | Desktop resolved to: C:\Users\Butt\Desktop
+2026-10-20 12:08:09 | INFO     | folder_challenge | Waiting up to 10.0s for folder: C:\Users\Butt\Desktop\unlock
+2026-10-20 12:08:19 | WARNING  | folder_challenge | Timeout: unlock folder was not created on the Desktop.
+2026-10-20 12:08:19 | WARNING  | cerberus | Folder challenge FAILED.
+2026-10-20 12:08:19 | WARNING  | cerberus | DEV_MODE: would shut down now. Reason: authentication failure
+2026-10-20 12:09:18 | INFO     | cerberus | Cerberus starting (DEV_MODE=True).
+2026-10-20 12:09:18 | INFO     | cerberus | Desktop path: C:\Users\Butt\Desktop
+2026-10-20 12:09:20 | INFO     | cerberus | === Cerberus head 2: USB check ===
+2026-10-20 12:09:20 | INFO     | usb_checker | Removable devices detected: ['D:\\', 'E:\\']
+2026-10-20 12:09:20 | INFO     | usb_checker | Checking device D:\ -> serial=5B850F0005F8
+2026-10-20 12:09:20 | INFO     | usb_checker | Authorized USB serial matched: 5B850F0005F8
+2026-10-20 12:09:20 | INFO     | cerberus | USB authentication PASSED.
+2026-10-20 12:09:20 | INFO     | cerberus | === Cerberus head 3: Desktop folder challenge ===
+2026-10-20 12:09:20 | INFO     | cerberus | Create a folder named 'unlock' on your Desktop within 10s.
+2026-10-20 12:09:20 | INFO     | folder_challenge | Desktop resolved to: C:\Users\Butt\Desktop
+2026-10-20 12:09:20 | INFO     | folder_challenge | Waiting up to 10.0s for folder: C:\Users\Butt\Desktop\unlock
+2026-10-20 12:09:29 | INFO     | folder_challenge | Unlock folder found: C:\Users\Butt\Desktop\unlock
+2026-10-20 12:09:29 | INFO     | cerberus | Folder challenge PASSED.
+2026-10-20 12:09:29 | INFO     | cerberus | === All Cerberus heads satisfied. System unlocked. ===
+2026-10-20 12:11:00 | INFO     | cerberus | Cerberus starting (DEV_MODE=True).
+2026-10-20 12:11:00 | INFO     | cerberus | Desktop path: C:\Users\Butt\Desktop
+2026-10-20 12:11:02 | INFO     | cerberus | === Cerberus head 2: USB check ===
+2026-10-20 12:11:02 | INFO     | usb_checker | Removable devices detected: ['D:\\']
+2026-10-20 12:11:02 | INFO     | usb_checker | Checking device D:\ -> serial=None
+2026-10-20 12:11:02 | WARNING  | usb_checker | No USB with an authorized serial was found.
+2026-10-20 12:11:02 | WARNING  | cerberus | USB authentication FAILED.
+2026-10-20 12:11:02 | WARNING  | cerberus | DEV_MODE: would shut down now. Reason: authentication failure
